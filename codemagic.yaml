@@ -1,0 +1,84 @@
+workflows:
+  ios-workflow:
+    name: iOS Nituvim AI
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - $HOME/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
+        - ios/Pods
+    
+    scripts:
+      - name: Set up debug keystore
+        script: |
+          # Setup for debug builds
+          echo "Setting up iOS debug configuration..."
+          
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+          
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios && pod install
+          
+      - name: Flutter analyze
+        script: |
+          flutter analyze
+          
+      - name: Flutter test
+        script: |
+          flutter test
+          
+      - name: Build Flutter for iOS
+        script: |
+          flutter build ios --debug --no-codesign
+          
+    artifacts:
+      - build/ios/iphoneos/*.app
+      - build/ios/iphonesimulator/*.app
+      - flutter_drive.log
+      
+    publishing:
+      email:
+        recipients:
+          - Idanmagor325@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # Debug workflow for faster testing
+  ios-debug:
+    name: iOS Debug Build
+    instance_type: mac_mini_m1
+    max_build_duration: 30
+    
+    environment:
+      flutter: stable
+      xcode: latest
+      
+    scripts:
+      - name: Get Flutter packages
+        script: flutter packages pub get
+        
+      - name: Build debug
+        script: flutter build ios --debug --no-codesign --simulator
+        
+    artifacts:
+      - build/ios/iphonesimulator/*.app
+      
+    publishing:
+      email:
+        recipients:
+          - Idanmagor325@gmail.com
+        notify:
+          success: true
+          failure: true 
