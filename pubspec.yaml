@@ -44,9 +44,6 @@ dependencies:
   
   # Networking (if needed)
   http: ^1.1.0
-  
-  # Hebrew/RTL Support
-  flutter_bidi: ^2.0.2
 
 dev_dependencies:
   flutter_test:
