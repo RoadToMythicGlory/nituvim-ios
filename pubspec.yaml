@@ -21,14 +21,14 @@ dependencies:
   # File handling (Windows compatible)
   file_picker: ^5.3.2
   path_provider: ^2.0.15
-  # permission_handler: ^10.4.3  # Commented out for Windows testing
+  permission_handler: ^10.4.3
   
   # Data & Storage
   shared_preferences: ^2.2.0
-  # sqflite: ^2.3.0  # Commented out - Windows uses different storage
+  sqflite: ^2.3.0
   
   # Date & Time
-  intl: ^0.18.1
+  intl: ^0.20.2
   
   # Sharing & Export (Windows compatible)
   share_plus: ^7.1.0
@@ -37,16 +37,13 @@ dependencies:
   # UI & Animations
   cupertino_icons: ^1.0.2
   flutter_staggered_animations: ^1.1.1
-  # lottie: ^2.4.0  # Commented out for simplicity
+  lottie: ^2.4.0
   
   # State Management
   provider: ^6.0.5
   
   # Networking (if needed)
   http: ^1.1.0
-  
-  # Hebrew/RTL Support
-  flutter_bidi: ^2.0.2
 
 dev_dependencies:
   flutter_test:
@@ -56,14 +53,13 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   
-  # Hebrew fonts and assets (Windows paths)
+  # Hebrew fonts and assets (commented out because assets directory does not exist)
   # fonts:
   #   - family: Heebo
   #     fonts:
   #       - asset: assets/fonts/Heebo-Regular.ttf
   #       - asset: assets/fonts/Heebo-Bold.ttf
   #         weight: 700
-          
   # assets:
   #   - assets/images/
   #   - assets/icons/
