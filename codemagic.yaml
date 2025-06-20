@@ -20,12 +20,23 @@ workflows:
     scripts:
       - name: Check and create iOS directory
         script: |
-          echo "Checking if iOS directory exists..."
-          if [ ! -d "ios" ]; then
-            echo "iOS directory not found. Creating iOS platform..."
+          echo "Checking iOS platform setup..."
+          if [ ! -f "ios/Podfile" ] || [ ! -d "ios/Runner.xcodeproj" ]; then
+            echo "iOS platform incomplete. Recreating iOS platform..."
+            rm -rf ios
             flutter create . --platforms=ios
+            echo "iOS platform created successfully!"
           else
-            echo "iOS directory already exists."
+            echo "iOS platform already properly configured."
+          fi
+          
+          # Verify iOS platform is properly set up
+          ls -la ios/
+          if [ -f "ios/Podfile" ]; then
+            echo "✅ Podfile found"
+          else
+            echo "❌ Podfile missing - this will cause CocoaPods to fail"
+            exit 1
           fi
           
       - name: Get Flutter dependencies
@@ -36,7 +47,17 @@ workflows:
       - name: Install CocoaPods dependencies
         script: |
           echo "Installing CocoaPods dependencies..."
-          cd ios && pod install --repo-update
+          if [ ! -f "ios/Podfile" ]; then
+            echo "❌ Podfile not found! Cannot install CocoaPods dependencies."
+            exit 1
+          fi
+          cd ios
+          echo "Contents of ios directory:"
+          ls -la
+          echo "CocoaPods version:"
+          pod --version
+          echo "Running pod install with verbose output..."
+          pod install --repo-update --verbose
           
       - name: Flutter clean and prepare
         script: |
