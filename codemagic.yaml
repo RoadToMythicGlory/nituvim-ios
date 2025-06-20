@@ -84,15 +84,6 @@ workflows:
       - build.log
       
     publishing:
-      # העלאה לApp Store Connect (אופציונלי)
-      app_store_connect:
-        # api_key: $APP_STORE_CONNECT_PRIVATE_KEY  # צריך להגדיר בממשק
-        # key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER  # צריך להגדיר בממשק
-        # issuer_id: $APP_STORE_CONNECT_ISSUER_ID   # צריך להגדיר בממשק
-        
-        submit_to_testflight: false  # משנה ל-true אם רוצה להעלות ל-TestFlight
-        submit_to_app_store: false   # משנה ל-true אם רוצה להעלות ל-App Store
-        
       email:
         recipients:
           - Idanmagor325@gmail.com
