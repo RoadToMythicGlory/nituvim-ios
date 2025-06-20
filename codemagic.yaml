@@ -1,6 +1,6 @@
 workflows:
   ios-signed-build:
-    name: iOS Build - With Code Signing
+    name: iOS Build - No Code Signing
     instance_type: mac_mini_m1
     max_build_duration: 60
     
@@ -8,10 +8,7 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-      # הגדרות חתימה - צריך להגדיר בממשק הניהול של Codemagic
-      ios_signing:
-        distribution_type: app_store  # או ad_hoc לטסטים
-        bundle_identifier: com.nituvim.ios  # Bundle ID לפרויקט ניתובים
+
       
     cache:
       cache_paths:
@@ -47,18 +44,18 @@ workflows:
           flutter clean
           flutter packages pub get
           
-      - name: Build iOS with signing
+      - name: Build iOS without signing
         script: |
-          echo "Building iOS with code signing for distribution..."
-          flutter build ios --release
+          echo "Building iOS without code signing..."
+          flutter build ios --debug --no-codesign
           
-      - name: Build IPA
-        script: |
-          echo "Creating IPA file..."
-          xcode-project build-ipa \
-            --workspace ios/Runner.xcworkspace \
-            --scheme Runner \
-            --archive-flags "-destination 'generic/platform=iOS'"
+      # - name: Build IPA (disabled - requires code signing)
+      #   script: |
+      #     echo "Creating IPA file..."
+      #     xcode-project build-ipa \
+      #       --workspace ios/Runner.xcworkspace \
+      #       --scheme Runner \
+      #       --archive-flags "-destination 'generic/platform=iOS'"
           
       - name: List build artifacts
         script: |
@@ -69,15 +66,14 @@ workflows:
           ls -la build/ios/
           
     artifacts:
-      # קובץ IPA חתום
-      - build/ios/ipa/*.ipa
-      
       # תיקיית iOS המלאה
       - ios/**
       
-      # תוצרי Build
+      # תוצרי Build (debug, no signing)
       - build/ios/iphoneos/*.app
       - build/ios/iphoneos/*.dSYM
+      - build/ios/iphonesimulator/*.app
+      - build/ios/iphonesimulator/*.dSYM
       
       # לוגים
       - flutter_drive.log
@@ -234,6 +230,83 @@ workflows:
         
     artifacts:
       - build/ios/iphonesimulator/*.app
+      
+    publishing:
+      email:
+        recipients:
+          - Idanmagor325@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # Workflow חתום לטסטים (Ad-Hoc Distribution)
+  ios-adhoc-build:
+    name: iOS Build - Ad-Hoc Distribution (Easier Setup)
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      # הגדרות חתימה Ad-Hoc - קל יותר להגדרה מ-App Store
+      # צריך רק iOS Development Certificate ו-Ad-Hoc Provisioning Profile
+      ios_signing:
+        distribution_type: ad_hoc  # קל יותר להגדרה מ-app_store
+        bundle_identifier: com.nituvim.app
+      
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - $HOME/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
+        - ios/Pods
+    
+    scripts:
+      - name: Check and create iOS directory
+        script: |
+          echo "Checking if iOS directory exists..."
+          if [ ! -d "ios" ]; then
+            echo "iOS directory not found. Creating iOS platform..."
+            flutter create . --platforms=ios
+          else
+            echo "iOS directory already exists."
+          fi
+          
+      - name: Get Flutter dependencies
+        script: |
+          echo "Getting Flutter dependencies..."
+          flutter packages pub get
+          
+      - name: Install CocoaPods dependencies
+        script: |
+          echo "Installing CocoaPods dependencies..."
+          cd ios && pod install --repo-update
+          
+      - name: Flutter clean and prepare
+        script: |
+          echo "Cleaning Flutter project..."
+          flutter clean
+          flutter packages pub get
+          
+      - name: Build iOS with Ad-Hoc signing
+        script: |
+          echo "Building iOS with Ad-Hoc code signing..."
+          flutter build ios --release
+          
+      - name: Build IPA
+        script: |
+          echo "Creating IPA file..."
+          xcode-project build-ipa \
+            --workspace ios/Runner.xcworkspace \
+            --scheme Runner \
+            --archive-flags "-destination 'generic/platform=iOS'"
+          
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - ios/**
+      - build/ios/iphoneos/*.app
+      - build/ios/iphoneos/*.dSYM
       
     publishing:
       email:
