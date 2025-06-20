@@ -68,7 +68,40 @@ workflows:
       - name: Build iOS without signing
         script: |
           echo "Building iOS without code signing..."
-          flutter build ios --debug --no-codesign
+          
+          # Verify iOS project structure
+          echo "Checking iOS project structure:"
+          ls -la ios/
+          if [ ! -d "ios/Runner.xcodeproj" ]; then
+            echo "❌ Runner.xcodeproj not found!"
+            exit 1
+          fi
+          if [ ! -f "ios/Runner.xcworkspace/contents.xcworkspacedata" ]; then
+            echo "❌ Runner.xcworkspace not found! CocoaPods might have failed."
+            exit 1
+          fi
+          
+          # Show Flutter and Xcode versions
+          echo "Flutter version:"
+          flutter --version
+          echo "Xcode version:"
+          xcodebuild -version
+          
+          # Clean build directory
+          echo "Cleaning build directory..."
+          rm -rf build/ios
+          
+          # Try building for simulator first (easier)
+          echo "Building iOS app for simulator..."
+          flutter build ios \
+            --debug \
+            --no-codesign \
+            --simulator \
+            --no-tree-shake-icons
+          
+          # Verify build output
+          echo "Build completed. Checking outputs:"
+          find build -name "*.app" -type d | head -10
           
       # - name: Build IPA (disabled - requires code signing)
       #   script: |
