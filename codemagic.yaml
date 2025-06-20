@@ -44,6 +44,24 @@ workflows:
           echo "Getting Flutter dependencies..."
           flutter packages pub get
           
+      - name: Fix iOS deployment target and bundle ID
+        script: |
+          echo "Fixing iOS deployment target to match Podfile..."
+          # Update Xcode project deployment target to 13.0
+          sed -i 's/IPHONEOS_DEPLOYMENT_TARGET = 12.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' ios/Runner.xcodeproj/project.pbxproj
+          
+          # Update bundle identifier to be more specific
+          sed -i 's/com.example.nituvimIos/com.nituvim.app/g' ios/Runner.xcodeproj/project.pbxproj
+          
+          echo "iOS deployment target updated to 13.0"
+          echo "Bundle identifier updated to com.nituvim.app"
+          
+          # Verify the changes
+          echo "Verifying deployment target fix:"
+          grep "IPHONEOS_DEPLOYMENT_TARGET" ios/Runner.xcodeproj/project.pbxproj | head -3
+          echo "Verifying bundle ID fix:"
+          grep "PRODUCT_BUNDLE_IDENTIFIER" ios/Runner.xcodeproj/project.pbxproj | head -3
+          
       - name: Install CocoaPods dependencies
         script: |
           echo "Installing CocoaPods dependencies..."
