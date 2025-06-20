@@ -1,6 +1,6 @@
 workflows:
-  ios-workflow:
-    name: iOS Nituvim AI
+  ios-build-workflow:
+    name: iOS Build - No Signing
     instance_type: mac_mini_m1
     max_build_duration: 60
     
@@ -17,35 +17,103 @@ workflows:
         - ios/Pods
     
     scripts:
-      - name: Set up debug keystore
+      - name: Check and create iOS directory
         script: |
-          # Setup for debug builds
-          echo "Setting up iOS debug configuration..."
+          echo "Checking if iOS directory exists..."
+          if [ ! -d "ios" ]; then
+            echo "iOS directory not found. Creating iOS platform..."
+            flutter create . --platforms=ios
+          else
+            echo "iOS directory already exists."
+          fi
           
-      - name: Get Flutter packages
+      - name: Get Flutter dependencies
         script: |
+          echo "Getting Flutter dependencies..."
           flutter packages pub get
           
       - name: Install CocoaPods dependencies
         script: |
-          cd ios && pod install
+          echo "Installing CocoaPods dependencies..."
+          cd ios && pod install --repo-update
           
-      - name: Flutter analyze
+      - name: Flutter clean and prepare
         script: |
-          flutter analyze
+          echo "Cleaning Flutter project..."
+          flutter clean
+          flutter packages pub get
           
-      - name: Flutter test
+      - name: Build iOS without signing
         script: |
-          flutter test
-          
-      - name: Build Flutter for iOS
-        script: |
+          echo "Building iOS without code signing..."
           flutter build ios --debug --no-codesign
           
+      - name: List build artifacts
+        script: |
+          echo "Listing build artifacts..."
+          find build -name "*.app" -type d
+          find build -name "*.dSYM" -type d
+          ls -la ios/
+          
     artifacts:
+      # תיקיית iOS המלאה
+      - ios/**
+      
+      # תוצרי Build
       - build/ios/iphoneos/*.app
+      - build/ios/iphoneos/*.dSYM
       - build/ios/iphonesimulator/*.app
+      - build/ios/iphonesimulator/*.dSYM
+      
+      # קבצי build נוספים
+      - build/ios/Debug-iphoneos/
+      - build/ios/Debug-iphonesimulator/
+      
+      # לוגים
       - flutter_drive.log
+      - build.log
+      
+    publishing:
+      email:
+        recipients:
+          - Idanmagor325@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # Workflow מהיר לבדיקות
+  ios-quick-build:
+    name: iOS Quick Build - Simulator Only
+    instance_type: mac_mini_m1
+    max_build_duration: 30
+    
+    environment:
+      flutter: stable
+      xcode: latest
+      
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - $HOME/.pub-cache
+        
+    scripts:
+      - name: Check and create iOS directory
+        script: |
+          if [ ! -d "ios" ]; then
+            flutter create . --platforms=ios
+          fi
+          
+      - name: Get dependencies
+        script: |
+          flutter packages pub get
+        
+      - name: Build for simulator only
+        script: |
+          flutter build ios --debug --no-codesign --simulator
+        
+    artifacts:
+      - ios/**
+      - build/ios/iphonesimulator/*.app
       
     publishing:
       email:
