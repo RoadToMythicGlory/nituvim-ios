@@ -91,17 +91,49 @@ workflows:
           echo "Cleaning build directory..."
           rm -rf build/ios
           
+          # Check if main.dart exists
+          if [ ! -f "lib/main.dart" ]; then
+            echo "❌ lib/main.dart not found!"
+            exit 1
+          fi
+          
           # Try building for simulator first (easier)
           echo "Building iOS app for simulator..."
           flutter build ios \
             --debug \
             --no-codesign \
             --simulator \
-            --no-tree-shake-icons
+            --target lib/main.dart \
+            --verbose
+          
+          # Also try building for device
+          echo "Building iOS app for device..."
+          flutter build ios \
+            --debug \
+            --no-codesign \
+            --target lib/main.dart \
+            --verbose
           
           # Verify build output
-          echo "Build completed. Checking outputs:"
+          echo "Build completed. Checking all outputs:"
           find build -name "*.app" -type d | head -10
+          echo "Checking build directory structure:"
+          ls -la build/
+          if [ -d "build/ios" ]; then
+            echo "iOS build directory contents:"
+            ls -la build/ios/
+          fi
+          
+      - name: Copy built apps to artifacts location
+        script: |
+          echo "Ensuring build artifacts are properly organized..."
+          mkdir -p build/ios/artifacts
+          
+          # Copy any .app files found
+          find build -name "*.app" -type d -exec cp -r {} build/ios/artifacts/ \;
+          
+          echo "Final artifacts check:"
+          ls -la build/ios/artifacts/ || echo "No artifacts directory created"
           
       # - name: Build IPA (disabled - requires code signing)
       #   script: |
@@ -123,11 +155,17 @@ workflows:
       # תיקיית iOS המלאה
       - ios/**
       
-      # תוצרי Build (debug, no signing)
+      # תוצרי Build (debug, no signing) - מספר מיקומים אפשריים
       - build/ios/iphoneos/*.app
       - build/ios/iphoneos/*.dSYM
       - build/ios/iphonesimulator/*.app
       - build/ios/iphonesimulator/*.dSYM
+      - build/ios/Debug-iphoneos/*.app
+      - build/ios/Debug-iphonesimulator/*.app
+      - build/ios/artifacts/*.app
+      
+      # כל תיקיית build
+      - build/**
       
       # לוגים
       - flutter_drive.log
