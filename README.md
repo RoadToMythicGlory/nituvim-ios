@@ -1,10 +1,4 @@
-(cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF'
-diff --git a/README.md b/README.md
---- a/README.md
-+++ b/README.md
-@@ -1,263 +1,344 @@
--# ניתובים AI - iOS App 📱
--
+
 -> Flutter iOS conversion of the Nituvim AI desktop application
 -
 -## 🚀 Overview
